@@ -45,7 +45,7 @@ while True:
         nonce += 1
     else:
         #print(nonce)
-        blockData = second_hash + fwz(str(nonce), 32) + fwz("0", 16 * 30)
+        blockData = second_hash + fwz(str(nonce), 32) + target  + fwz("0", 16 * 29)
         print(blockData)
         file = open("./blocks/block_" + fwz(str(counter), 20) + ".blk", "w")
         file.write(blockData)
