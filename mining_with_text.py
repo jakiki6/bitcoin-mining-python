@@ -73,7 +73,7 @@ while True:
         file = open(os.path.join("blocks", "block_") + fwz(str(counter), 20) + ".blk", "w")
         file.write(block_data_with_nonce)
         file.close()
-        blockData = last_hash + str(hex(int(target, 16))).replace("x", "") + fwz(binascii.hexlify(input("Data?: ").encode()).decode(), 29 * 64)
+        blockData = last_hash + fwz(str(hex(int(target, 16))).replace("x", ""), 64) + fwz(binascii.hexlify(input("Data?: ").encode()).decode(), 29 * 64)
         reset()
         counter += 1
         last_hash = second_hash
