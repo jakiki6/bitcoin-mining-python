@@ -1,4 +1,4 @@
-import hashlib, random
+import hashlib, random, os
 
 def get_start_rand():
     t = ""
@@ -12,43 +12,64 @@ def get_sha_256_hash(input_value):
 
 def block_hash_less_than_target(block_hash, given_target):
     return int(block_hash, 16) < int(given_target, 16)
-def fwz(i, l):
+def fwz(i, l): #Fill with zero
     if len(i) > l:
         return i[:l]
     while len(i) != l:
         i = "0" + i
     return i
 
-# Initial block data (the transactions' merkle tree root, timestamp, client version, hash of the previous block)
+# Initial block data
 blockData = (\
-    '01000000000000000000000000000000000000000000000000000000000000000000000' \
-    '03ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f' + get_start_rand()).encode()
+    '00000000000000000000000000000000000000000000000000000000000000000000000' \
+    '00000000000000000000000000000000000000000000000000000000000000000000000' + get_start_rand()).encode()
+
+highest_number = "-1"
+for _, _, f in os.walk("blocks"):
+    for file in f:
+        if "block_" in file:
+            highest_number = file.replace("block_", "").replace(".blk", "")
+if not highest_number == "-1":
+    file = open(os.path.join("blocks", "block_") + highest_number + ".blk", "r")
+    blockData = file.read().encode()
+    file.close()
+    print("Start with block " + highest_number)
 
 # Initial target - this is the easiest it will ever be to mine a Bitcoin block
-target = '0x00008FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+target = '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+
+#Init hash
+last_hash = get_sha_256_hash("".encode())
+
+#Init Custom Data
+cd = fwz("0", 30 * 16)
 
 def reset():
     global solution_found, block_data_hexadecimal_value, nonce
     solution_found = False
-    block_data_hexadecimal_value = int(blockData, 16)
+    block_data_hexadecimal_value = str(hex(int(blockData, 16)))
     nonce = 0
 reset()
-counter = 0
+if highest_number == "-1":
+    counter = 0
+else:
+    counter = int(highest_number)
 while True:
-    block_data_with_nonce = block_data_hexadecimal_value + nonce
+    block_data_with_nonce = block_data_hexadecimal_value + str(nonce)
 
     # Find double hash
-    first_hash = get_sha_256_hash(hex(block_data_with_nonce).encode())
+    first_hash = get_sha_256_hash(hex(int(block_data_with_nonce, 16)).encode())
     second_hash = get_sha_256_hash(first_hash.encode())
     solution_found = block_hash_less_than_target(second_hash, target)
     if not solution_found:
         nonce += 1
     else:
         #print(nonce)
-        blockData = second_hash + fwz(str(nonce), 32) + target  + fwz("0", 16 * 29)
-        print(blockData)
-        file = open("./blocks/block_" + fwz(str(counter), 20) + ".blk", "w")
-        file.write(blockData)
+        print(block_data_with_nonce)
+        file = open(os.path.join("blocks", "block_") + fwz(str(counter), 20) + ".blk", "w")
+        file.write(block_data_with_nonce)
         file.close()
+        blockData = last_hash + cd
         reset()
         counter += 1
+        last_hash = second_hash
