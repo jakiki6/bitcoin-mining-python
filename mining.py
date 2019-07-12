@@ -75,7 +75,7 @@ while True:
         file = open(os.path.join("blocks", "block_") + fwz(str(counter), 20) + ".blk", "w")
         file.write(block_data_with_nonce)
         file.close()
-        blockData = last_hash + target  + cd
+        blockData = last_hash + str(hex(int(target, 16))).replace("x", "") + cd
         reset()
         counter += 1
         last_hash = second_hash
