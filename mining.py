@@ -21,8 +21,8 @@ def fwz(i, l): #Fill with zero
 
 # Initial block data
 blockData = (\
-    '0000000000000000000000000000000000000000000000000' \
-    '0000000000000000000000000000000000000000000000000' + get_start_rand()).encode()
+    '0000000000000000000000000000000000000000000000000000000000000000' \
+    '0000000000000000000000000000000000000000000000000000000000000000' + get_start_rand()).encode()
 
 highest_number = "-1"
 for _, _, f in os.walk("blocks"):
@@ -36,18 +36,18 @@ if not highest_number == "-1":
     print("Start with block " + highest_number)
 
 # Initial target - this is the easiest it will ever be to mine a Bitcoin block
-target = '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+target = '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 
 #Init hash
 if highest_number == "-1":
     last_hash = get_sha_256_hash("".encode())
 else:
     tmpfile = open(os.path.join("blocks", "block_") + highest_number + ".blk", "r")
-    last_hash = tmpfile.read() [:32]
+    last_hash = tmpfile.read() [:64]
     tmpfile.close()
     del(tmpfile)
 #Init Custom Data
-cd = fwz("0", 30 * 16)
+cd = fwz("0", 30 * 64)
 
 def reset():
     global solution_found, block_data_hexadecimal_value, nonce
@@ -65,6 +65,7 @@ while True:
     # Find double hash
     first_hash = get_sha_256_hash(hex(int(block_data_with_nonce, 16)).encode())
     second_hash = get_sha_256_hash(first_hash.encode())
+    print(second_hash)
     solution_found = block_hash_less_than_target(second_hash, target)
     if not solution_found:
         nonce += 1
@@ -74,7 +75,7 @@ while True:
         file = open(os.path.join("blocks", "block_") + fwz(str(counter), 20) + ".blk", "w")
         file.write(block_data_with_nonce)
         file.close()
-        blockData = last_hash + cd
+        blockData = last_hash + target  + cd
         reset()
         counter += 1
         last_hash = second_hash
