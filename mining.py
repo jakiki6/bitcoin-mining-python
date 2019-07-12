@@ -21,8 +21,8 @@ def fwz(i, l): #Fill with zero
 
 # Initial block data
 blockData = (\
-    '00000000000000000000000000000000000000000000000000000000000000000000000' \
-    '00000000000000000000000000000000000000000000000000000000000000000000000' + get_start_rand()).encode()
+    '0000000000000000000000000000000000000000000000000' \
+    '0000000000000000000000000000000000000000000000000' + get_start_rand()).encode()
 
 highest_number = "-1"
 for _, _, f in os.walk("blocks"):
@@ -39,8 +39,13 @@ if not highest_number == "-1":
 target = '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 
 #Init hash
-last_hash = get_sha_256_hash("".encode())
-
+if highest_number == "-1":
+    last_hash = get_sha_256_hash("".encode())
+else:
+    tmpfile = open(os.path.join("blocks", "block_") + highest_number + ".blk", "r")
+    last_hash = tmpfile.read() [:32]
+    tmpfile.close()
+    del(tmpfile)
 #Init Custom Data
 cd = fwz("0", 30 * 16)
 
